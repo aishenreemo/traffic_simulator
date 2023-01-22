@@ -1,0 +1,6 @@
+-I./include/
+-Wall
+-lSDL2
+-lSDL2_image
+-lcollections
+-lm
