@@ -22,16 +22,20 @@ void app_init() {
 	// :)
 	app.running = true;
 
+	// initialize config
+	app.config.spawn_cd = 0.5;
+	app.config.spawn_rand = 0.5;
+	app.config.duration = 30.0;
+	app.config.max_vehicles = 10;
+
 	// initialize vectors
 	vector_init(&app.sdl_event_queue, NULL);
 	vector_init(&app.command_queue, NULL);
 
-	// initialize vehicles
-
-	// initialize traffic lights
-
 	// initialize spawn cooldown
 	app.last_update = time_milliseconds();
+	app.duration_cd = app.config.duration;
+	app.spawn_cd = genrand_spawn_cd();
 
 	// initialize SDL
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -55,6 +59,15 @@ void app_init() {
 		SDL_RENDERER_ACCELERATED
 	);
 
+	// get screen width and height
+	int sw, sh;
+	SDL_GetWindowSize(app.window, &sw, &sh);
+
+	// initialize vehicles
+	for (uint i = 0; i < 5; i++) vector_init(app.roads + i, NULL);
+	vector_init(&app.pending_vehicles, NULL);
+
+	// initialize traffic lights
 
 	// initialize threads
 	pthread_create(&app.event_thread, NULL, app_event_thread, NULL);
@@ -76,6 +89,16 @@ void app_quit(enum __app_exit_code_t__ exit_code) {
 	// deallocate vectors
 	vector_drop(&app.sdl_event_queue);
 	vector_drop(&app.command_queue);
+	vector_drop(&app.pending_vehicles);
+
+	for (uint i = 0; i < 5; i++) {
+		for (uint j = 0; j < app.roads[i].length; j++) {
+			vehicle_t *v = vector_get(app.roads + i, j, NULL);
+			SDL_DestroyTexture(v->texture);
+		}
+
+		vector_drop(app.roads + i);
+	}
 
 	// deallocate SDL
 	SDL_DestroyRenderer(app.renderer);

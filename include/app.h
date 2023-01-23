@@ -5,6 +5,13 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <stdint.h>
+
+#include "vehicle.h"
+#include "config.h"
+
+typedef struct __vehicle_t__ vehicle_t;
+typedef struct __config_t__ config_t;
 
 // MACROS
 #define APP_WARN		"\033[1;33mwarn\033[0m: "
@@ -27,7 +34,14 @@ struct __app_t__ {
 	SDL_Renderer	*renderer;
 	SDL_Window	*window;
 
+	config_t	config;
+
 	double		last_update;
+	double		duration_cd;
+	double		spawn_cd;
+
+	vector_t	roads[5];
+	vector_t	pending_vehicles;
 };
 
 // ENUMERATIONS
@@ -85,8 +99,53 @@ void app_render();
 // GLOBAL VARIABLES
 extern struct __app_t__ app;
 
-// utilities
+// Constants
+static const char COLORSCHEME[18][7] = {
+	"0B0F10\0",
+	"c5c8c9\0",
+	"131718\0",
+	"df5b61\0",
+	"87c7a1\0",
+	"de8f78\0",
+	"6791c9\0",
+	"bc83e3\0",
+	"70b9cc\0",
+	"c4c4c4\0",
+	"151a1c\0",
+	"ee6a70\0",
+	"96d6b0\0",
+	"ffb29b\0",
+	"7ba5dd\0",
+	"cb92f2\0",
+	"7fc8db\0",
+	"cccccc\0"
+};
+
+enum COLORSCHEME_ENUM {
+	BACKGROUND,
+	FOREGROUND,
+	COLOR_00,
+	COLOR_01,
+	COLOR_02,
+	COLOR_03,
+	COLOR_04,
+	COLOR_05,
+	COLOR_06,
+	COLOR_07,
+	COLOR_08,
+	COLOR_09,
+	COLOR_10,
+	COLOR_11,
+	COLOR_12,
+	COLOR_13,
+	COLOR_14,
+	COLOR_15,
+};
+
+// Utilities
 double time_milliseconds(void);
+double genrand_spawn_cd();
+void hextocolor(char[7], uint8_t[3]);
 int random_int(int, int);
 
 #endif // __APP_H__
