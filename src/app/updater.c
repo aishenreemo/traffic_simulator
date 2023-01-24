@@ -16,7 +16,7 @@ void app_update() {
 
 	// count the total amount of vehicles present
 	uint vehicles_length = 0;
-	for (uint i = 0; i < 5; i++) vehicles_length += app.roads[i].length;
+	for (uint i = 0; i < 9; i++) vehicles_length += app.roads[i].length;
 
 	// spawn a vehicle if spawn timer runs out
 	if (app.spawn_cd < 0.0 && vehicles_length < app.config.max_vehicles) spawn_vehicle();
@@ -44,10 +44,12 @@ void app_update() {
 		vector_remove(&app.command_queue, 0, NULL);
 	}
 
-	for (uint i = 0; i < 5; i++) {
+	int sw, sh;
+	SDL_GetWindowSize(app.window, &sw, &sh);
+	for (uint i = 0; i < 9; i++) {
 		for (uint j = 0; j < app.roads[i].length; j++) {
 			vehicle_t *v = vector_get(app.roads + i, j, NULL);
-			move_vehicle(v, i, j);
+			move_vehicle(v, i, j, sw, sh);
 			update_vehicle_position(v);
 		}
 	}
@@ -64,7 +66,7 @@ void app_update() {
 		vector_remove(app.roads + i, j, NULL);
 
 		if (v_copy->progress < 1.0 && v_copy->progress >= 0.6) {
-			vector_push(app.roads + v_copy->into, v_copy, NULL);
+			vector_push(app.roads + v_copy->into + 5, v_copy, NULL);
 		} else if (v->progress < 0.6 && v_copy->progress >= 0.4) {
 			vector_push(app.roads + 4, v_copy, NULL);
 		} else {

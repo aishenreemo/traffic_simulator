@@ -25,7 +25,7 @@ void app_init() {
 	// initialize config
 	app.config.spawn_cd = 0.5;
 	app.config.spawn_rand = 0.5;
-	app.config.duration = 30.0;
+	app.config.duration = 60.0;
 	app.config.max_vehicles = 10;
 
 	// initialize vectors
@@ -64,7 +64,7 @@ void app_init() {
 	SDL_GetWindowSize(app.window, &sw, &sh);
 
 	// initialize vehicles
-	for (uint i = 0; i < 5; i++) vector_init(app.roads + i, NULL);
+	for (uint i = 0; i < 9; i++) vector_init(app.roads + i, NULL);
 	vector_init(&app.pending_vehicles, NULL);
 
 	// initialize traffic lights

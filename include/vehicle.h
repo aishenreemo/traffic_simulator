@@ -22,7 +22,7 @@ struct __vehicle_t__ {
 };
 
 void spawn_vehicle();
-void move_vehicle(struct __vehicle_t__*, uint, uint);
+void move_vehicle(struct __vehicle_t__*, uint, uint, int, int);
 void render_vehicle(struct __vehicle_t__*, int, int);
 void update_vehicle_position(struct __vehicle_t__*);
 

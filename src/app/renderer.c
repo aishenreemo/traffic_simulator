@@ -65,7 +65,7 @@ void app_render() {
 	// set color to foreground
 	hextocolor((char *) COLORSCHEME[FOREGROUND], color);
 	SDL_SetRenderDrawColor(app.renderer, color[0], color[1], color[2], 255);
-	for (uint i = 0; i < 5; i++) {
+	for (uint i = 0; i < 9; i++) {
 		// road
 		for (uint j = 0; j < app.roads[i].length; j++) {
 			vehicle_t *v = vector_get(&app.roads[i], j, NULL);

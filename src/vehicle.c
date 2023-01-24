@@ -17,7 +17,7 @@ void spawn_vehicle() {
 	// change destination if its the same with source
 	if (newv->into == newv->from) newv->into = (newv->into + 1) % 4;
 
-	newv->progress = 0;
+	newv->progress = -0.25;
 	update_vehicle_position(newv);
 
 	int sw, sh;
@@ -38,7 +38,34 @@ void spawn_vehicle() {
 	vector_push(app.roads + newv->from, newv, NULL);
 }
 
-void move_vehicle(vehicle_t *v, uint i, uint j) {
+bool is_vehicle_colliding(vehicle_t *v1, vehicle_t *v2, uint i) {
+	enum __road_direction_t__ dir = i > 4 ? (v1->into + 2) % 4 : v1->from;
+	double moving_gap = 0.03;
+
+	if (dir == ROAD_UP) {
+		double v1y = v1->y + 0.05;
+		double v2y = v2->y - 0.05;
+
+		return (v2y - moving_gap) < v1y;
+	} else if (dir == ROAD_DOWN) {
+		double v1y = v1->y - 0.05;
+		double v2y = v2->y + 0.05;
+
+		return (v2y + moving_gap) > v1y;
+	} else if (dir == ROAD_LEFT) {
+		double v1x = v1->x + 0.05;
+		double v2x = v2->x - 0.05;
+
+		return (v2x - moving_gap) < v1x;
+	} else {
+		double v1x = v1->x - 0.05;
+		double v2x = v2->x + 0.05;
+
+		return (v2x + moving_gap) > v1x;
+	}
+};
+
+void move_vehicle(vehicle_t *v, uint i, uint j, int sw, int sh) {
 	double speed = 0.005;
 	int diff = v->from - v->into;
 
@@ -52,12 +79,17 @@ void move_vehicle(vehicle_t *v, uint i, uint j) {
 		(v->progress < 0.60 && v->progress > 0.40)
 	) speed = 0.01;
 
+	if (i != 4 && j != 0) {
+		vehicle_t *nv = vector_get(app.roads + i, j - 1, NULL);
+		if (is_vehicle_colliding(v, nv, i)) return;
+	}
+
 	double new_progress = v->progress + speed;
 
 	if (
 		(v->progress < 0.4 && new_progress >= 0.4) ||
 		(v->progress < 0.6 && new_progress >= 0.6) ||
-		(v->progress < 1.0 && new_progress >= 1.0)
+		(v->progress < 1.25 && new_progress >= 1.25)
 	) {
 		uint *k = calloc(sizeof(uint), 2);
 		k[0] = i;
@@ -120,9 +152,10 @@ void update_vpos_middle(vehicle_t *v) {
 			{90,0.6,0.4},
 		};
 
-		v->rotation = 90 * p + q[v->from][0];
-		v->x = 0.05 * cos(M_PI * 2 * (v->rotation / 360)) + q[v->from][1];
-		v->y = 0.05 * sin(M_PI * 2 * (v->rotation / 360)) + q[v->from][2];
+		double r = 90.0 * p + q[v->from][0];
+		v->rotation = fmod(r + 180.0, 360.0);
+		v->x = 0.05 * cos(M_PI * 2 * (r / 360.0)) + q[v->from][1];
+		v->y = 0.05 * sin(M_PI * 2 * (r / 360.0)) + q[v->from][2];
 	// else if opposite (other side)
 	} else {
 		if (v->progress < 0.45) {
@@ -186,9 +219,9 @@ void render_vehicle(vehicle_t *v, int sw, int sh) {
 
 	SDL_Point vcenter = {vw / 2, vh / 2};
 
-	// set color to background
+	// set color to red
 	uint8_t color[3];
-	hextocolor((char *) COLORSCHEME[BACKGROUND], color);
+	hextocolor((char *) COLORSCHEME[COLOR_01], color);
 	SDL_SetRenderDrawColor(app.renderer, color[0], color[1], color[2], 255);
 
 	SDL_RenderCopyEx(
@@ -201,5 +234,9 @@ void render_vehicle(vehicle_t *v, int sw, int sh) {
 		SDL_FLIP_NONE
 	);
 
-	SDL_RenderDrawPoint(app.renderer, cx, cy);
+	double r = fmod(v->rotation + 270.0, 360.0);
+	double vx = (0.08 * cos(M_PI * 2 * r / 360) + v->x) * sw;
+	double vy = (0.08 * sin(M_PI * 2 * r / 360) + v->y) * sh;
+
+	SDL_RenderDrawLine(app.renderer, cx, cy, vx, vy);
 }

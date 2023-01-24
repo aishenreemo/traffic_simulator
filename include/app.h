@@ -40,7 +40,7 @@ struct __app_t__ {
 	double		duration_cd;
 	double		spawn_cd;
 
-	vector_t	roads[5];
+	vector_t	roads[9];
 	vector_t	pending_vehicles;
 };
 
