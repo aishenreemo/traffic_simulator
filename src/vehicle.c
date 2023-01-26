@@ -82,6 +82,28 @@ void move_vehicle(vehicle_t *v, uint i, uint j, int sw, int sh) {
 	if (i != 4 && j != 0) {
 		vehicle_t *nv = vector_get(app.roads + i, j - 1, NULL);
 		if (is_vehicle_colliding(v, nv, i)) return;
+	} else if (i == 4 || (i < 4 && j == 0)) {
+		for (uint k = 0; k < app.roads[4].length; k++) {
+			if (k == j && i == 4) continue;
+			vehicle_t *nv = vector_get(app.roads + 4, k, NULL);
+
+			double vr = fmod(v->rotation + 270.0, 360.0);
+			double vlength = (0.07 + 0.1) / 2;
+			double cx = nv->x * sw;
+			double cy = nv->y * sh;
+
+			SDL_Rect vhitbox;
+			vhitbox.x = cx - (vlength * sw / 2.0);
+			vhitbox.y = cy - (vlength * sh / 2.0);
+			vhitbox.w = vlength * sw;
+			vhitbox.h = vlength * sh;
+
+			SDL_Point vp;
+			vp.x = (0.08 * cos(M_PI * 2 * vr / 360) + v->x) * sw;
+			vp.y = (0.08 * sin(M_PI * 2 * vr / 360) + v->y) * sh;
+
+			if (SDL_PointInRect(&vp, &vhitbox)) return;
+		}
 	}
 
 	double new_progress = v->progress + speed;
@@ -233,10 +255,4 @@ void render_vehicle(vehicle_t *v, int sw, int sh) {
 		&vcenter,
 		SDL_FLIP_NONE
 	);
-
-	double r = fmod(v->rotation + 270.0, 360.0);
-	double vx = (0.08 * cos(M_PI * 2 * r / 360) + v->x) * sw;
-	double vy = (0.08 * sin(M_PI * 2 * r / 360) + v->y) * sh;
-
-	SDL_RenderDrawLine(app.renderer, cx, cy, vx, vy);
 }
