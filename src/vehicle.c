@@ -94,32 +94,68 @@ void move_vehicle(vehicle_t *v, uint i, uint j, int sw, int sh) {
 		vehicle_t *nv = vector_get(app.roads + i, j - 1, NULL);
 		if (is_vehicle_colliding(v, nv, i)) return;
 	} else if (i == 4 || (i < 4 && j == 0)) {
+
+		double vr = fmod(v->rotation + 270.0, 360.0);
+		SDL_Point vp[5];
+		vp[0].x = (0.085 * cos(M_PI * 2 * vr / 360) + v->x) * sw;
+		vp[0].y = (0.085 * sin(M_PI * 2 * vr / 360) + v->y) * sh;
+		vp[1].x = (0.08 * cos(M_PI * 2 * (vr + 10) / 360) + v->x) * sw;
+		vp[1].y = (0.08 * sin(M_PI * 2 * (vr + 10) / 360) + v->y) * sh;
+		vp[2].x = (0.08 * cos(M_PI * 2 * (vr - 10) / 360) + v->x) * sw;
+		vp[2].y = (0.08 * sin(M_PI * 2 * (vr - 10) / 360) + v->y) * sh;
+		vp[3].x = (0.07 * cos(M_PI * 2 * (vr + 15) / 360) + v->x) * sw;
+		vp[3].y = (0.07 * sin(M_PI * 2 * (vr + 15) / 360) + v->y) * sh;
+		vp[4].x = (0.07 * cos(M_PI * 2 * (vr - 15) / 360) + v->x) * sw;
+		vp[4].y = (0.07 * sin(M_PI * 2 * (vr - 15) / 360) + v->y) * sh;
+
 		for (uint k = 0; k < app.roads[4].length; k++) {
 			if (k == j && i == 4) continue;
 			vehicle_t *nv = vector_get(app.roads + 4, k, NULL);
 
-			double vlength = (v->width + v->height) / 2;
 			double cx = nv->x * sw;
 			double cy = nv->y * sh;
 
 			SDL_Rect vhitbox;
-			vhitbox.x = cx - (vlength * sw / 2.0);
-			vhitbox.y = cy - (vlength * sh / 2.0);
-			vhitbox.w = vlength * sw;
-			vhitbox.h = vlength * sh;
+			if (fmod(nv->rotation, 180) < 45 || fmod(nv->rotation, 180) > 135) {
+				vhitbox.x = cx - (nv->width * sw / 2.0);
+				vhitbox.y = cy - (nv->height * sh / 2.0);
+				vhitbox.w = nv->width * sw;
+				vhitbox.h = nv->height * sh;
+			} else {
+				vhitbox.x = cx - (nv->height * sw / 2.0);
+				vhitbox.y = cy - (nv->width * sh / 2.0);
+				vhitbox.w = nv->height * sw;
+				vhitbox.h = nv->width * sh;
+			}
 
-			double vr = fmod(v->rotation + 270.0, 360.0);
-			SDL_Point vp[5];
-			vp[0].x = (0.095 * cos(M_PI * 2 * vr / 360) + v->x) * sw;
-			vp[0].y = (0.095 * sin(M_PI * 2 * vr / 360) + v->y) * sh;
-			vp[1].x = (0.09 * cos(M_PI * 2 * (vr + 10) / 360) + v->x) * sw;
-			vp[1].y = (0.09 * sin(M_PI * 2 * (vr + 10) / 360) + v->y) * sh;
-			vp[2].x = (0.09 * cos(M_PI * 2 * (vr - 10) / 360) + v->x) * sw;
-			vp[2].y = (0.09 * sin(M_PI * 2 * (vr - 10) / 360) + v->y) * sh;
-			vp[3].x = (0.09 * cos(M_PI * 2 * (vr + 20) / 360) + v->x) * sw;
-			vp[3].y = (0.09 * sin(M_PI * 2 * (vr + 20) / 360) + v->y) * sh;
-			vp[4].x = (0.09 * cos(M_PI * 2 * (vr - 20) / 360) + v->x) * sw;
-			vp[4].y = (0.09 * sin(M_PI * 2 * (vr - 20) / 360) + v->y) * sh;
+			if (
+				SDL_PointInRect(vp + 0, &vhitbox) ||
+				SDL_PointInRect(vp + 1, &vhitbox) ||
+				SDL_PointInRect(vp + 2, &vhitbox) ||
+				SDL_PointInRect(vp + 3, &vhitbox) ||
+				SDL_PointInRect(vp + 4, &vhitbox)
+			) return;
+		}
+
+		if (app.roads[v->into].length > 0) {
+			uint k = app.roads[v->into].length - 1;
+			vehicle_t *nv = vector_get(app.roads + v->into, k, NULL);
+
+			double cx = nv->x * sw;
+			double cy = nv->y * sh;
+
+			SDL_Rect vhitbox;
+			if (fmod(nv->rotation, 180) < 45 || fmod(nv->rotation, 180) > 135) {
+				vhitbox.x = cx - (nv->width * sw / 2.0);
+				vhitbox.y = cy - (nv->height * sh / 2.0);
+				vhitbox.w = nv->width * sw;
+				vhitbox.h = nv->height * sh;
+			} else {
+				vhitbox.x = cx - (nv->height * sw / 2.0);
+				vhitbox.y = cy - (nv->width * sh / 2.0);
+				vhitbox.w = nv->height * sw;
+				vhitbox.h = nv->width * sh;
+			}
 
 			if (
 				SDL_PointInRect(vp + 0, &vhitbox) ||
