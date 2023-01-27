@@ -3,6 +3,7 @@
 
 #include <SDL2/SDL_render.h>
 #include <stdlib.h>
+#include "color.h"
 
 enum __road_direction_t__ {
 	ROAD_UP,
@@ -16,6 +17,10 @@ struct __vehicle_t__ {
 	double y;
 	double progress;
 	double rotation;
+	double speed;
+	double width;
+	double height;
+	enum __colorscheme_t__ color;
 	enum __road_direction_t__ from;
 	enum __road_direction_t__ into;
 	SDL_Texture *texture;

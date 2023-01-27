@@ -14,6 +14,12 @@ void spawn_vehicle() {
 	newv->from = random_int(ROAD_UP, ROAD_RIGHT + 1);
 	newv->into = random_int(ROAD_UP, ROAD_RIGHT + 1);
 
+	// vehicle characteristics
+	newv->color = random_int(COLOR_09, COLOR_15 + 1);
+	newv->width = ((double) rand() / (double) RAND_MAX) * 0.02 + 0.060;
+	newv->height = ((double) rand() / (double) RAND_MAX) * 0.04 + 0.080;
+	newv->speed = ((double) rand() / (double) RAND_MAX) * 0.0020 + 0.0040;
+
 	// change destination if its the same with source
 	if (newv->into == newv->from) newv->into = (newv->into + 1) % 4;
 
@@ -26,11 +32,16 @@ void spawn_vehicle() {
 
 	vrect.x = 0;
 	vrect.y = 0;
-	vrect.w = 0.07 * sw;
-	vrect.h = 0.10 * sh;
+	vrect.w = newv->width * sw;
+	vrect.h = newv->height * sh;
 
-	SDL_Surface *vsurface = SDL_CreateRGBSurface(0, 0.07 * sw, 0.10 * sh, 32, 0, 0, 0, 0);
-	SDL_FillRect(vsurface, &vrect, strtol(COLORSCHEME[FOREGROUND], NULL, 16));
+	SDL_Surface *vsurface = SDL_CreateRGBSurface(
+		0,
+		newv->width * sw,
+		newv->height * sh,
+		32, 0, 0, 0, 0
+	);
+	SDL_FillRect(vsurface, &vrect, strtol(COLORSCHEME[newv->color], NULL, 16));
 
 	newv->texture = SDL_CreateTextureFromSurface(app.renderer, vsurface);
 	SDL_FreeSurface(vsurface);
@@ -40,7 +51,7 @@ void spawn_vehicle() {
 
 bool is_vehicle_colliding(vehicle_t *v1, vehicle_t *v2, uint i) {
 	enum __road_direction_t__ dir = i > 4 ? (v1->into + 2) % 4 : v1->from;
-	double moving_gap = 0.03;
+	double moving_gap = 0.04;
 
 	if (dir == ROAD_UP) {
 		double v1y = v1->y + 0.05;
@@ -66,18 +77,18 @@ bool is_vehicle_colliding(vehicle_t *v1, vehicle_t *v2, uint i) {
 };
 
 void move_vehicle(vehicle_t *v, uint i, uint j, int sw, int sh) {
-	double speed = 0.005;
+	double speed = v->speed;
 	int diff = v->from - v->into;
 
 	if (
 		(diff == 1 || diff == -3) &&
 		((v->progress < 0.45 && v->progress > 0.40) || (v->progress < 0.60 && v->progress > 0.55))
-	) speed = 0.0025;
+	) speed /= 2;
 
 	if (
 		(diff == -1 || diff == 3) &&
 		(v->progress < 0.60 && v->progress > 0.40)
-	) speed = 0.01;
+	) speed *= 2;
 
 	if (i != 4 && j != 0) {
 		vehicle_t *nv = vector_get(app.roads + i, j - 1, NULL);
@@ -87,8 +98,7 @@ void move_vehicle(vehicle_t *v, uint i, uint j, int sw, int sh) {
 			if (k == j && i == 4) continue;
 			vehicle_t *nv = vector_get(app.roads + 4, k, NULL);
 
-			double vr = fmod(v->rotation + 270.0, 360.0);
-			double vlength = (0.07 + 0.1) / 2;
+			double vlength = (v->width + v->height) / 2;
 			double cx = nv->x * sw;
 			double cy = nv->y * sh;
 
@@ -98,11 +108,26 @@ void move_vehicle(vehicle_t *v, uint i, uint j, int sw, int sh) {
 			vhitbox.w = vlength * sw;
 			vhitbox.h = vlength * sh;
 
-			SDL_Point vp;
-			vp.x = (0.08 * cos(M_PI * 2 * vr / 360) + v->x) * sw;
-			vp.y = (0.08 * sin(M_PI * 2 * vr / 360) + v->y) * sh;
+			double vr = fmod(v->rotation + 270.0, 360.0);
+			SDL_Point vp[5];
+			vp[0].x = (0.095 * cos(M_PI * 2 * vr / 360) + v->x) * sw;
+			vp[0].y = (0.095 * sin(M_PI * 2 * vr / 360) + v->y) * sh;
+			vp[1].x = (0.09 * cos(M_PI * 2 * (vr + 10) / 360) + v->x) * sw;
+			vp[1].y = (0.09 * sin(M_PI * 2 * (vr + 10) / 360) + v->y) * sh;
+			vp[2].x = (0.09 * cos(M_PI * 2 * (vr - 10) / 360) + v->x) * sw;
+			vp[2].y = (0.09 * sin(M_PI * 2 * (vr - 10) / 360) + v->y) * sh;
+			vp[3].x = (0.09 * cos(M_PI * 2 * (vr + 20) / 360) + v->x) * sw;
+			vp[3].y = (0.09 * sin(M_PI * 2 * (vr + 20) / 360) + v->y) * sh;
+			vp[4].x = (0.09 * cos(M_PI * 2 * (vr - 20) / 360) + v->x) * sw;
+			vp[4].y = (0.09 * sin(M_PI * 2 * (vr - 20) / 360) + v->y) * sh;
 
-			if (SDL_PointInRect(&vp, &vhitbox)) return;
+			if (
+				SDL_PointInRect(vp + 0, &vhitbox) ||
+				SDL_PointInRect(vp + 1, &vhitbox) ||
+				SDL_PointInRect(vp + 2, &vhitbox) ||
+				SDL_PointInRect(vp + 3, &vhitbox) ||
+				SDL_PointInRect(vp + 4, &vhitbox)
+			) return;
 		}
 	}
 
@@ -230,8 +255,8 @@ void update_vpos_end(vehicle_t *v) {
 void render_vehicle(vehicle_t *v, int sw, int sh) {
 	double cx = v->x * sw;
 	double cy = v->y * sh;
-	double vw = 0.07 * sw;
-	double vh = 0.10 * sh;
+	double vw = v->width * sw;
+	double vh = v->height * sh;
 
 	SDL_Rect vrect;
 	vrect.x = cx - (vw / 2.0);

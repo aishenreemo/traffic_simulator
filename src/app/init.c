@@ -26,7 +26,7 @@ void app_init() {
 	app.config.spawn_cd = 0.5;
 	app.config.spawn_rand = 0.5;
 	app.config.duration = 60.0;
-	app.config.max_vehicles = 10;
+	app.config.max_vehicles = 100;
 
 	// initialize vectors
 	vector_init(&app.sdl_event_queue, NULL);
