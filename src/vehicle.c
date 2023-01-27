@@ -280,4 +280,35 @@ void render_vehicle(vehicle_t *v, int sw, int sh) {
 		&vcenter,
 		SDL_FLIP_NONE
 	);
+
+	if (!app.config.debug) return;
+
+	SDL_Rect vhitbox;
+	if (fmod(v->rotation, 180) < 45 || fmod(v->rotation, 180) > 135) {
+		vhitbox.x = cx - (v->width * sw / 2.0);
+		vhitbox.y = cy - (v->height * sh / 2.0);
+		vhitbox.w = v->width * sw;
+		vhitbox.h = v->height * sh;
+	} else {
+		vhitbox.x = cx - (v->height * sw / 2.0);
+		vhitbox.y = cy - (v->width * sh / 2.0);
+		vhitbox.w = v->height * sw;
+		vhitbox.h = v->width * sh;
+	}
+
+	double vr = fmod(v->rotation + 270.0, 360.0);
+	SDL_Point vp[5];
+	vp[0].x = (0.085 * cos(M_PI * 2 * vr / 360) + v->x) * sw;
+	vp[0].y = (0.085 * sin(M_PI * 2 * vr / 360) + v->y) * sh;
+	vp[1].x = (0.08 * cos(M_PI * 2 * (vr + 10) / 360) + v->x) * sw;
+	vp[1].y = (0.08 * sin(M_PI * 2 * (vr + 10) / 360) + v->y) * sh;
+	vp[2].x = (0.08 * cos(M_PI * 2 * (vr - 10) / 360) + v->x) * sw;
+	vp[2].y = (0.08 * sin(M_PI * 2 * (vr - 10) / 360) + v->y) * sh;
+	vp[3].x = (0.07 * cos(M_PI * 2 * (vr + 15) / 360) + v->x) * sw;
+	vp[3].y = (0.07 * sin(M_PI * 2 * (vr + 15) / 360) + v->y) * sh;
+	vp[4].x = (0.07 * cos(M_PI * 2 * (vr - 15) / 360) + v->x) * sw;
+	vp[4].y = (0.07 * sin(M_PI * 2 * (vr - 15) / 360) + v->y) * sh;
+
+	SDL_RenderDrawRect(app.renderer, &vhitbox);
+	SDL_RenderDrawLines(app.renderer, vp, 5);
 }
