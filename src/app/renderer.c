@@ -62,9 +62,6 @@ void app_render() {
 	// render center_rect
 	SDL_RenderFillRect(app.renderer, &center_rect);
 
-	// set color to foreground
-	hextocolor((char *) COLORSCHEME[FOREGROUND], color);
-	SDL_SetRenderDrawColor(app.renderer, color[0], color[1], color[2], 255);
 	for (uint i = 0; i < 9; i++) {
 		// road
 		for (uint j = 0; j < app.roads[i].length; j++) {
@@ -72,6 +69,9 @@ void app_render() {
 			render_vehicle(v, sw, sh);
 		}
 	}
+
+	// traffic lights
+	for (uint i = 0; i < 4; i++) render_traffic_light(i, sw, sh);
 
 	// present
 	SDL_RenderPresent(app.renderer);

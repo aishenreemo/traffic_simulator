@@ -9,10 +9,12 @@
 
 #include "vehicle.h"
 #include "config.h"
+#include "lights.h"
 #include "color.h"
 
 typedef struct __vehicle_t__ vehicle_t;
 typedef struct __config_t__ config_t;
+typedef enum __lights_t__ lights_t;
 
 // MACROS
 #define APP_WARN		"\033[1;33mwarn\033[0m: "
@@ -43,6 +45,8 @@ struct __app_t__ {
 
 	vector_t	roads[9];
 	vector_t	pending_vehicles;
+
+	lights_t	lights[4];
 };
 
 // ENUMERATIONS

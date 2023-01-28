@@ -69,6 +69,9 @@ void app_init() {
 	vector_init(&app.pending_vehicles, NULL);
 
 	// initialize traffic lights
+	for (uint i = 0; i < 4; i++) app.lights[i] = TL_STOP;
+	app.lights[1] = TL_GO;
+	app.lights[3] = TL_GO;
 
 	// initialize threads
 	pthread_create(&app.event_thread, NULL, app_event_thread, NULL);

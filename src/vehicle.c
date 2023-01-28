@@ -94,7 +94,6 @@ void move_vehicle(vehicle_t *v, uint i, uint j, int sw, int sh) {
 		vehicle_t *nv = vector_get(app.roads + i, j - 1, NULL);
 		if (is_vehicle_colliding(v, nv, i)) return;
 	} else if (i == 4 || (i < 4 && j == 0)) {
-
 		double vr = fmod(v->rotation + 270.0, 360.0);
 		SDL_Point vp[5];
 		vp[0].x = (0.085 * cos(M_PI * 2 * vr / 360) + v->x) * sw;
@@ -156,6 +155,23 @@ void move_vehicle(vehicle_t *v, uint i, uint j, int sw, int sh) {
 				vhitbox.w = nv->height * sw;
 				vhitbox.h = nv->width * sh;
 			}
+
+			if (
+				SDL_PointInRect(vp + 0, &vhitbox) ||
+				SDL_PointInRect(vp + 1, &vhitbox) ||
+				SDL_PointInRect(vp + 2, &vhitbox) ||
+				SDL_PointInRect(vp + 3, &vhitbox) ||
+				SDL_PointInRect(vp + 4, &vhitbox)
+			) return;
+		}
+
+		if (i < 4 && app.lights[i] == TL_STOP) {
+			SDL_Rect vhitbox;
+
+			vhitbox.x = sw * 0.40;
+			vhitbox.y = sh * 0.40;
+			vhitbox.w = sw * 0.20;
+			vhitbox.h = sh * 0.20;
 
 			if (
 				SDL_PointInRect(vp + 0, &vhitbox) ||
