@@ -15,4 +15,15 @@ while (true) {
 - `update`: Process the said queue from `listen` one by one and do the instructions to mutate the game (a global variable). Remove the instruction from the queue after its been processed. Update the mandatory variables such as position of vehicles, timed cooldowns, etc.
 - `render`: Display the game based on the information from a global variable that is mutated by `update`.
 
+# Installing
+To run this software, you need to install some dependencies:
+- gcc
+- make
+- sdl2
+- sdl2_image
+- [libcollections](https://github.com/aishenreemo/libcollections)
 
+After installing the dependencies run this on your command line.
+```sh
+make && make run
+```
