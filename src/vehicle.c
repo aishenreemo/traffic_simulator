@@ -165,7 +165,7 @@ void move_vehicle(vehicle_t *v, uint i, uint j, int sw, int sh) {
 			) return;
 		}
 
-		if (i < 4 && app.lights[i] == TL_STOP) {
+		if (i < 4 && app.lights[i].variant == TL_STOP) {
 			SDL_Rect vhitbox;
 
 			vhitbox.x = sw * 0.40;

@@ -14,7 +14,7 @@
 
 typedef struct __vehicle_t__ vehicle_t;
 typedef struct __config_t__ config_t;
-typedef enum __lights_t__ lights_t;
+typedef struct __light_t__ light_t;
 
 // MACROS
 #define APP_WARN		"\033[1;33mwarn\033[0m: "
@@ -46,7 +46,7 @@ struct __app_t__ {
 	vector_t	roads[9];
 	vector_t	pending_vehicles;
 
-	lights_t	lights[4];
+	light_t	lights[4];
 };
 
 // ENUMERATIONS
@@ -64,6 +64,10 @@ enum __app_exit_code_t__ {
 enum __app_command_t__ {
 	COMMAND_QUIT,
 	COMMAND_DEBUG,
+	TOGGLE_LIGHT_UP,
+	TOGGLE_LIGHT_LEFT,
+	TOGGLE_LIGHT_DOWN,
+	TOGGLE_LIGHT_RIGHT,
 };
 
 // PUBLIC FUNCTIONS

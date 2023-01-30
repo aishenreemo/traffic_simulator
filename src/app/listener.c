@@ -1,3 +1,4 @@
+#include <SDL2/SDL_rect.h>
 #include <libcollections/vector.h>
 #include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL.h>
@@ -7,6 +8,7 @@
 
 void app_on_event(SDL_Event *event);
 void app_on_keydown(SDL_Event *event);
+void app_on_mousebtndown(SDL_Event *event);
 
 void app_listen() {
 	// check if app is not running
@@ -48,6 +50,9 @@ void app_on_event(SDL_Event *event) {
 	} else if (event->type == SDL_KEYDOWN) {
 		// if client press a key in the program
 		app_on_keydown(event);
+	} else if (event->type == SDL_MOUSEBUTTONDOWN) {
+		// if client press the mouse button
+		app_on_mousebtndown(event);
 	}
 }
 
@@ -73,5 +78,43 @@ void app_on_keydown(SDL_Event *event) {
 		enum __app_command_t__ *cmd = malloc(sizeof(enum __app_command_t__));
 		*cmd = COMMAND_DEBUG;
 		vector_push(&app.command_queue, cmd, NULL);
+	}
+}
+
+void app_on_mousebtndown(SDL_Event *event) {
+	if (event->button.button != SDL_BUTTON_LEFT) return;
+
+	SDL_Rect roads[4];
+	int sw, sh;
+
+	SDL_GetWindowSize(app.window, &sw, &sh);
+
+	roads[0].x = 0.4 * sw;
+	roads[0].y = 0.0 * sh;
+	roads[0].w = 0.2 * sw;
+	roads[0].h = 0.4 * sh;
+	roads[1].x = 0.0 * sw;
+	roads[1].y = 0.4 * sh;
+	roads[1].w = 0.4 * sw;
+	roads[1].h = 0.2 * sh;
+	roads[2].x = 0.4 * sw;
+	roads[2].y = 0.6 * sh;
+	roads[2].w = 0.2 * sw;
+	roads[2].h = 0.4 * sh;
+	roads[3].x = 0.6 * sw;
+	roads[3].y = 0.4 * sh;
+	roads[3].w = 0.4 * sw;
+	roads[3].h = 0.2 * sh;
+
+	SDL_Point mousepos;
+	mousepos.x = event->button.x;
+	mousepos.y = event->button.y;
+
+	for (uint i = 0; i < 4; i++) {
+		if (!SDL_PointInRect(&mousepos, roads + i)) continue;
+		enum __app_command_t__ *cmd = malloc(sizeof(enum __app_command_t__));
+		*cmd = TOGGLE_LIGHT_UP + i;
+		vector_push(&app.command_queue, cmd, NULL);
+		return;
 	}
 }

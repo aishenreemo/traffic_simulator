@@ -34,7 +34,7 @@ void render_traffic_light(uint i, int sw, int sh) {
 		hextocolor((char *) COLORSCHEME[colors[j]], color);
 		SDL_SetRenderDrawColor(app.renderer, color[0], color[1], color[2], 255);
 
-		if (app.lights[i] == j) {
+		if (app.lights[i].variant == j) {
 			SDL_RenderFillRect(app.renderer, lights_rect + j);
 		} else {
 			SDL_RenderDrawRect(app.renderer, lights_rect + j);

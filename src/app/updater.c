@@ -1,4 +1,5 @@
 #include "app.h"
+#include "lights.h"
 
 void app_update() {
 	// check if app is not running
@@ -12,6 +13,7 @@ void app_update() {
 
 	app.spawn_cd -= diff;
 	app.duration_cd -= diff;
+
 	app.last_update = new_update;
 
 	// count the total amount of vehicles present
@@ -23,6 +25,15 @@ void app_update() {
 
 	// exit the program if duration_cd runs out
 	if (app.duration_cd < 0.0) app_quit(APP_EXIT_SUCCESS);
+
+	for (uint i = 0; i < 4; i++) {
+		if (app.lights[i].variant != TL_SLOW) continue;
+		app.lights[i].cooldown -= diff;
+
+		if (app.lights[i].cooldown >= 0) continue;
+		app.lights[i].cooldown = 0;
+		app.lights[i].variant = app.lights[i].stop ? TL_STOP : TL_GO;
+	}
 
 	// process every command in the command_queue vector (treating it also as a queue)
 	while (app.command_queue.length > 0) {
@@ -38,6 +49,13 @@ void app_update() {
 			int ph = ((double) y / (double) h) * 100;
 
 			printf("cursor: (%d, %d) | (%d%%w, %d%%h)\n", x, y, pw, ph);
+		}
+
+		if (*cmd >= TOGGLE_LIGHT_UP && *cmd <= TOGGLE_LIGHT_RIGHT) {
+			uint i = *cmd - TOGGLE_LIGHT_UP;
+			app.lights[i].variant = TL_SLOW;
+			app.lights[i].stop = !app.lights[i].stop;
+			app.lights[i].cooldown = 0.5;
 		}
 
 		// remove the first item then process the next one
