@@ -23,7 +23,7 @@ To run this software, you need to install some dependencies:
 - sdl2_image
 - [libcollections](https://github.com/aishenreemo/libcollections)
 
-After installing the dependencies run this on your command line.
+After installing the dependencies, clone the repo, cd then run this on your command line.
 ```sh
 make && make run
 ```
