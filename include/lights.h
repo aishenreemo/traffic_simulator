@@ -12,6 +12,7 @@ enum __light_variant_t__ {
 
 struct __light_t__ {
 	bool stop;
+	double slow_cd;
 	double cooldown;
 	enum __light_variant_t__ variant;
 };

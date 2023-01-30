@@ -1,5 +1,6 @@
 #include "app.h"
 #include "lights.h"
+#include <libcollections/vector.h>
 
 void app_update() {
 	// check if app is not running
@@ -27,11 +28,15 @@ void app_update() {
 	if (app.duration_cd < 0.0) app_quit(APP_EXIT_SUCCESS);
 
 	for (uint i = 0; i < 4; i++) {
-		if (app.lights[i].variant != TL_SLOW) continue;
-		app.lights[i].cooldown -= diff;
+		if (app.lights[i].variant != TL_SLOW) {
+			app.lights[i].cooldown -= diff;
+			continue;
+		}
+		app.lights[i].slow_cd -= diff;
 
-		if (app.lights[i].cooldown >= 0) continue;
-		app.lights[i].cooldown = 0;
+		if (app.lights[i].slow_cd >= 0) continue;
+		app.lights[i].slow_cd = 0;
+		app.lights[i].cooldown = app.lights[i].stop ? 5.0 : 2.0;
 		app.lights[i].variant = app.lights[i].stop ? TL_STOP : TL_GO;
 	}
 
@@ -51,11 +56,12 @@ void app_update() {
 			printf("cursor: (%d, %d) | (%d%%w, %d%%h)\n", x, y, pw, ph);
 		}
 
-		if (*cmd >= TOGGLE_LIGHT_UP && *cmd <= TOGGLE_LIGHT_RIGHT) {
+		if (*cmd >= TOGGLE_LIGHT_UP && *cmd <= TOGGLE_LIGHT_RIGHT && !app.config.automatic) {
 			uint i = *cmd - TOGGLE_LIGHT_UP;
+
 			app.lights[i].variant = TL_SLOW;
 			app.lights[i].stop = !app.lights[i].stop;
-			app.lights[i].cooldown = 0.5;
+			app.lights[i].slow_cd = 0.5;
 		}
 
 		// remove the first item then process the next one
@@ -93,5 +99,45 @@ void app_update() {
 		}
 
 		vector_remove(&app.pending_vehicles, app.pending_vehicles.length - 1, NULL);
+	}
+
+	if (app.config.automatic) {
+		uint highest = 5;
+		double highest_cost = -1;
+		for (uint i = 0; i < 4; i++) {
+			if (app.roads[i].length == 0) continue;
+
+			double vcost = app.roads[i].length;
+			vehicle_t *v = vector_get(app.roads + i, 0, NULL);
+			int diff = v->from - v->into;
+
+			if (diff == 1 || diff == -3) vcost += 1;
+			if (abs(diff) % 2 == 0) vcost += 2;
+			if (diff == -1 || diff == 3) vcost += 3;
+
+			double distances[4] = {0.4 - v->y, 0.4 - v->x, v->y - 0.6, v->x - 0.6};
+
+			vcost -= 3 * distances[i];
+
+			if (highest_cost > vcost) continue;
+			highest_cost = vcost;
+			highest = i;
+		}
+
+		for (uint i = 0; i < 4; i++) {
+			if (app.lights[i].stop || i == highest) continue;
+			if (app.lights[i].cooldown > 0) continue;
+			app.lights[i].variant = TL_SLOW;
+			app.lights[i].stop = true;
+			app.lights[i].slow_cd = 0.5;
+		}
+
+		if (highest != 5 && app.lights[highest].variant == TL_STOP) {
+			if (app.lights[highest].cooldown > 0) return;
+			app.lights[highest].variant = TL_SLOW;
+			app.lights[highest].stop = false;
+			app.lights[highest].slow_cd = 0.5;
+		}
+
 	}
 }

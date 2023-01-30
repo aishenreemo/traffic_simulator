@@ -5,11 +5,12 @@
 #include <stdlib.h>
 
 struct __config_t__ {
-	double spawn_cd; // spawn cooldown
-	double spawn_rand; // spawn interval randomness
-	double duration; // duration till program terminate
+	double spawn_cd;
+	double spawn_rand;
+	double duration;
 	uint max_vehicles;
 	bool debug;
+	bool automatic;
 };
 
 #endif

@@ -23,11 +23,12 @@ void app_init() {
 	app.running = true;
 
 	// initialize config
-	app.config.spawn_cd = 0.75;
-	app.config.spawn_rand = 0.5;
+	app.config.spawn_cd = 1;
+	app.config.spawn_rand = 1;
 	app.config.duration = 60.0;
-	app.config.max_vehicles = 100;
-	app.config.debug = true;
+	app.config.max_vehicles = 20;
+	app.config.debug = false;
+	app.config.automatic = true;
 
 	// initialize vectors
 	vector_init(&app.sdl_event_queue, NULL);
@@ -71,6 +72,7 @@ void app_init() {
 	// initialize traffic lights
 	for (uint i = 0; i < 4; i++) {
 		app.lights[i].variant = TL_STOP;
+		app.lights[i].slow_cd = 0;
 		app.lights[i].cooldown = 0;
 		app.lights[i].stop = true;
 	}
