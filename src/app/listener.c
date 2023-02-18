@@ -22,13 +22,13 @@ void app_listen() {
 
 	// process every events in the sdl_event_queue vector (treating it as a queue)
 	while (app.sdl_event_queue.length > 0) {
-		SDL_Event *event = vector_get(&app.sdl_event_queue, 0, NULL);
+		SDL_Event *event = vector_get(&app.sdl_event_queue, 0);
 
 		// transform SDL event to a command
 		app_on_event(event);
 
 		// remove the first item then process the next one
-		vector_remove(&app.sdl_event_queue, 0, NULL);
+		vector_remove(&app.sdl_event_queue, 0);
 	}
 
 	pthread_mutex_unlock(&app.event_lock);
@@ -44,9 +44,8 @@ void app_on_event(SDL_Event *event) {
 
 	if (event->type == SDL_QUIT) {
 		// if client exit (forced quit) the program
-		enum __app_command_t__ *cmd = malloc(sizeof(enum __app_command_t__));
-		*cmd = COMMAND_QUIT;
-		vector_push(&app.command_queue, cmd, NULL);
+		enum __app_command_t__ cmd = COMMAND_QUIT;
+		vector_push(&app.command_queue, &cmd);
 	} else if (event->type == SDL_KEYDOWN) {
 		// if client press a key in the program
 		app_on_keydown(event);
@@ -71,13 +70,11 @@ void app_on_keydown(SDL_Event *event) {
 
 	if (keycode == SDLK_c && (keymod & KMOD_CTRL) != 0) {
 		// if client press ctrl + c
-		enum __app_command_t__ *cmd = malloc(sizeof(enum __app_command_t__));
-		*cmd = COMMAND_QUIT;
-		vector_push(&app.command_queue, cmd, NULL);
+		enum __app_command_t__ cmd = COMMAND_QUIT;
+		vector_push(&app.command_queue, &cmd);
 	} else if (keycode == SDLK_SPACE && keymod == 0) {
-		enum __app_command_t__ *cmd = malloc(sizeof(enum __app_command_t__));
-		*cmd = COMMAND_DEBUG;
-		vector_push(&app.command_queue, cmd, NULL);
+		enum __app_command_t__ cmd = COMMAND_DEBUG;
+		vector_push(&app.command_queue, &cmd);
 	}
 }
 
@@ -112,9 +109,8 @@ void app_on_mousebtndown(SDL_Event *event) {
 
 	for (uint i = 0; i < 4; i++) {
 		if (!SDL_PointInRect(&mousepos, roads + i)) continue;
-		enum __app_command_t__ *cmd = malloc(sizeof(enum __app_command_t__));
-		*cmd = TOGGLE_LIGHT_UP + i;
-		vector_push(&app.command_queue, cmd, NULL);
+		enum __app_command_t__ cmd = TOGGLE_LIGHT_UP + i;
+		vector_push(&app.command_queue, &cmd);
 		return;
 	}
 }

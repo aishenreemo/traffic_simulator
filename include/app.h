@@ -46,7 +46,10 @@ struct __app_t__ {
 	vector_t	roads[9];
 	vector_t	pending_vehicles;
 
-	light_t	lights[4];
+	light_t		lights[4];
+
+	uint		total;
+	double		duration;
 };
 
 // ENUMERATIONS

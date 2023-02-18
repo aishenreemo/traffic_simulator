@@ -23,21 +23,23 @@ void app_init() {
 	app.running = true;
 
 	// initialize config
-	app.config.spawn_cd = 1;
+	app.config.spawn_cd = 0.75;
 	app.config.spawn_rand = 1;
 	app.config.duration = 60.0;
-	app.config.max_vehicles = 20;
+	app.config.max_vehicles = 15;
 	app.config.debug = false;
 	app.config.automatic = true;
 
 	// initialize vectors
-	vector_init(&app.sdl_event_queue, NULL);
-	vector_init(&app.command_queue, NULL);
+	vector_init(&app.sdl_event_queue, sizeof(SDL_Event));
+	vector_init(&app.command_queue, sizeof(enum __app_command_t__));
 
 	// initialize spawn cooldown
 	app.last_update = time_milliseconds();
 	app.duration_cd = app.config.duration;
 	app.spawn_cd = genrand_spawn_cd();
+	app.total = 0;
+	app.duration = 0;
 
 	// initialize SDL
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -66,8 +68,8 @@ void app_init() {
 	SDL_GetWindowSize(app.window, &sw, &sh);
 
 	// initialize vehicles
-	for (uint i = 0; i < 9; i++) vector_init(app.roads + i, NULL);
-	vector_init(&app.pending_vehicles, NULL);
+	for (uint i = 0; i < 9; i++) vector_init(app.roads + i, sizeof(vehicle_t));
+	vector_init(&app.pending_vehicles, sizeof(uint) * 2);
 
 	// initialize traffic lights
 	for (uint i = 0; i < 4; i++) {
@@ -88,6 +90,10 @@ void app_quit(enum __app_exit_code_t__ exit_code) {
 		exit(APP_EXIT_FAILURE);
 	}
 
+	printf("Total vehicles passed: %d\n", app.total);
+	printf("Duration in seconds: %fs\n", app.duration);
+	printf("Traffic Flow: %fv/s\n", (double) app.total / app.duration);
+
 	// :(
 	app.running = false;
 
@@ -101,7 +107,7 @@ void app_quit(enum __app_exit_code_t__ exit_code) {
 
 	for (uint i = 0; i < 5; i++) {
 		for (uint j = 0; j < app.roads[i].length; j++) {
-			vehicle_t *v = vector_get(app.roads + i, j, NULL);
+			vehicle_t *v = vector_get(app.roads + i, j);
 			SDL_DestroyTexture(v->texture);
 		}
 
@@ -131,12 +137,12 @@ void *app_event_thread(void *_) {
 	}
 
 	while (true) {
-		SDL_Event *event = malloc(sizeof(SDL_Event));
-		SDL_WaitEvent(event); // wait for an event
+		SDL_Event event;
+		SDL_WaitEvent(&event); // wait for an event
 
 		// push that event to a queue where `app_listen` reads it
 		pthread_mutex_lock(&app.event_lock);
-		vector_push(&app.sdl_event_queue, event, NULL);
+		vector_push(&app.sdl_event_queue, &event);
 		pthread_mutex_unlock(&app.event_lock);
 	}
 

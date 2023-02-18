@@ -46,7 +46,8 @@ void spawn_vehicle() {
 	newv->texture = SDL_CreateTextureFromSurface(app.renderer, vsurface);
 	SDL_FreeSurface(vsurface);
 
-	vector_push(app.roads + newv->from, newv, NULL);
+	vector_push(app.roads + newv->from, newv);
+	free(newv);
 }
 
 bool is_vehicle_colliding(vehicle_t *v1, vehicle_t *v2, uint i) {
@@ -91,7 +92,7 @@ void move_vehicle(vehicle_t *v, uint i, uint j, int sw, int sh) {
 	) speed *= 2;
 
 	if (i != 4 && j != 0) {
-		vehicle_t *nv = vector_get(app.roads + i, j - 1, NULL);
+		vehicle_t *nv = vector_get(app.roads + i, j - 1);
 		if (is_vehicle_colliding(v, nv, i)) return;
 	} else if (i == 4 || (i < 4 && j == 0)) {
 		double vr = fmod(v->rotation + 270.0, 360.0);
@@ -109,7 +110,7 @@ void move_vehicle(vehicle_t *v, uint i, uint j, int sw, int sh) {
 
 		for (uint k = 0; k < app.roads[4].length; k++) {
 			if (k == j && i == 4) continue;
-			vehicle_t *nv = vector_get(app.roads + 4, k, NULL);
+			vehicle_t *nv = vector_get(app.roads + 4, k);
 
 			double cx = nv->x * sw;
 			double cy = nv->y * sh;
@@ -138,7 +139,7 @@ void move_vehicle(vehicle_t *v, uint i, uint j, int sw, int sh) {
 
 		if (app.roads[v->into].length > 0) {
 			uint k = app.roads[v->into].length - 1;
-			vehicle_t *nv = vector_get(app.roads + v->into, k, NULL);
+			vehicle_t *nv = vector_get(app.roads + v->into, k);
 
 			double cx = nv->x * sw;
 			double cy = nv->y * sh;
@@ -193,7 +194,8 @@ void move_vehicle(vehicle_t *v, uint i, uint j, int sw, int sh) {
 		uint *k = calloc(sizeof(uint), 2);
 		k[0] = i;
 		k[1] = j;
-		vector_push(&app.pending_vehicles, k, NULL);
+		vector_push(&app.pending_vehicles, k);
+		free(k);
 	}
 
 	v->progress = new_progress;

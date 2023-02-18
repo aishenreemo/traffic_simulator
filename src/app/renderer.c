@@ -65,7 +65,7 @@ void app_render() {
 	for (uint i = 0; i < 9; i++) {
 		// road
 		for (uint j = 0; j < app.roads[i].length; j++) {
-			vehicle_t *v = vector_get(&app.roads[i], j, NULL);
+			vehicle_t *v = vector_get(&app.roads[i], j);
 			render_vehicle(v, sw, sh);
 		}
 	}

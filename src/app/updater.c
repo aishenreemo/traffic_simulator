@@ -14,6 +14,7 @@ void app_update() {
 
 	app.spawn_cd -= diff;
 	app.duration_cd -= diff;
+	app.duration += diff;
 
 	app.last_update = new_update;
 
@@ -36,13 +37,13 @@ void app_update() {
 
 		if (app.lights[i].slow_cd >= 0) continue;
 		app.lights[i].slow_cd = 0;
-		app.lights[i].cooldown = app.lights[i].stop ? 5.0 : 2.0;
+		app.lights[i].cooldown = 1.0;
 		app.lights[i].variant = app.lights[i].stop ? TL_STOP : TL_GO;
 	}
 
 	// process every command in the command_queue vector (treating it also as a queue)
 	while (app.command_queue.length > 0) {
-		enum __app_command_t__ *cmd = vector_get(&app.command_queue, 0, NULL);
+		enum __app_command_t__ *cmd = vector_get(&app.command_queue, 0);
 
 		if (COMMAND_QUIT == *cmd) app_quit(APP_EXIT_SUCCESS);
 		if (COMMAND_DEBUG == *cmd) {
@@ -65,40 +66,42 @@ void app_update() {
 		}
 
 		// remove the first item then process the next one
-		vector_remove(&app.command_queue, 0, NULL);
+		vector_remove(&app.command_queue, 0);
 	}
 
 	int sw, sh;
 	SDL_GetWindowSize(app.window, &sw, &sh);
 	for (uint i = 0; i < 9; i++) {
 		for (uint j = 0; j < app.roads[i].length; j++) {
-			vehicle_t *v = vector_get(app.roads + i, j, NULL);
+			vehicle_t *v = vector_get(app.roads + i, j);
 			move_vehicle(v, i, j, sw, sh);
 			update_vehicle_position(v);
 		}
 	}
 
 	while (app.pending_vehicles.length > 0) {
-		uint *k = vector_get(&app.pending_vehicles, app.pending_vehicles.length - 1, NULL);
+		uint *k = vector_get(&app.pending_vehicles, app.pending_vehicles.length - 1);
 		uint i = k[0];
 		uint j = k[1];
 
-		vehicle_t *v = vector_get(app.roads + i, j, NULL);
+		vehicle_t *v = vector_get(app.roads + i, j);
 		vehicle_t *v_copy = malloc(sizeof(vehicle_t));
 
 		*v_copy = *v;
-		vector_remove(app.roads + i, j, NULL);
+		vector_remove(app.roads + i, j);
 
 		if (v_copy->progress < 1.0 && v_copy->progress >= 0.6) {
-			vector_push(app.roads + v_copy->into + 5, v_copy, NULL);
+			app.total += 1;
+			vector_push(app.roads + v_copy->into + 5, v_copy);
 		} else if (v->progress < 0.6 && v_copy->progress >= 0.4) {
-			vector_push(app.roads + 4, v_copy, NULL);
+			vector_push(app.roads + 4, v_copy);
 		} else {
 			SDL_DestroyTexture(v_copy->texture);
-			free(v_copy);
 		}
 
-		vector_remove(&app.pending_vehicles, app.pending_vehicles.length - 1, NULL);
+		free(v_copy);
+
+		vector_remove(&app.pending_vehicles, app.pending_vehicles.length - 1);
 	}
 
 	if (app.config.automatic) {
@@ -108,7 +111,7 @@ void app_update() {
 			if (app.roads[i].length == 0) continue;
 
 			double vcost = app.roads[i].length;
-			vehicle_t *v = vector_get(app.roads + i, 0, NULL);
+			vehicle_t *v = vector_get(app.roads + i, 0);
 			int diff = v->from - v->into;
 
 			if (diff == 1 || diff == -3) vcost += 1;
